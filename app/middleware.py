@@ -1,6 +1,7 @@
 from functools import wraps
 from flask import request, json
 from marshmallow import ValidationError
+from app.helper import format_error
 
 
 def login_required(f):
@@ -15,11 +16,7 @@ def param_required(schema):
             try:
                 schema.load(request.form)
             except ValidationError as err:
-                error = {
-                    "status": False,
-                    "errors": err.messages
-                }
-                return json.jsonify(error), 400
+                return json.jsonify(format_error(err.messages)), 400
             return fn(*args, **kwargs)
         return wrapper
     return decorator

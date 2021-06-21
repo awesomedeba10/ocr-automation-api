@@ -132,3 +132,4 @@ config.py
 requirements copy.txt
 
 storage/users/
+storage/templates/

@@ -1,3 +1,4 @@
+from re import template
 from flask import Blueprint, json, request
 import os
 
@@ -13,6 +14,7 @@ user_blueprint = Blueprint('user_blueprint', __name__)
 def create():
     user_info = dict(request.form)
     user_info['user_id'] = return_random()
+    user_info['templates'] = {}
 
     with open(os.path.join(app.config.get('STORAGE_DIR'),'users', user_info['user_id']+'.json'), 'w') as jsonFile:
         json.dump(user_info, jsonFile)
@@ -36,7 +38,4 @@ def profile():
                 'response': json.load(jsonFile)
             })
     except FileNotFoundError:
-        return json.jsonify({
-            'status': False,
-            'errors': "Invalid User ID"
-        })
+        return json.jsonify(format_error({"user_id": ["Invalid User Id"]})), 400
