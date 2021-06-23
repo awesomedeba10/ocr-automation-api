@@ -36,3 +36,44 @@ class CVImage:
 
     def write_image(self, destination):
         cv.imwrite(destination, self.image)
+
+    def write_targeted_image(self, destination, image):
+        cv.imwrite(destination, image)
+
+    def initdocument(self, doc):
+        self.userdoc = cv.imread(doc)
+        return self
+
+    def match_keypoints(self, goodPercent = 25):
+        docKp, docDes = self.__detectAndComputeOrb(self.userdoc)
+        templateKp, templateDes = self.__detectAndComputeOrb(self.image)
+        bf = cv.BFMatcher(cv.NORM_HAMMING)
+        matches = bf.match(docDes, templateDes)
+        matches.sort(key=lambda d: d.distance)
+        good = matches[:int(len(matches)*(goodPercent/100))]
+
+        srcPoints = np.float32([docKp[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
+        dstPoints = np.float32([templateKp[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
+
+        M, _ = cv.findHomography(srcPoints, dstPoints, cv.RANSAC, 5.0)
+        h, w, c = self.image.shape
+        imgScan = cv.warpPerspective(self.userdoc, M, (w,h))
+        imgScan = cv.resize(imgScan, (w, h))
+        return imgScan
+
+    def drawLabelsonDoc(self, image, ROIs, alpha = 0.5):
+        image_mask = np.zeros_like(image)
+        for label, roi in ROIs.items():
+            left, top, right, bottom = roi
+            cv.rectangle(image_mask, (left, top), (right, bottom), self.color_blue, cv.FILLED)
+            # cv.rectangle(image_mask, (right, top), (right + (self.unitCharlength*(len(label)+1)), bottom), self.color_blue, cv.FILLED)
+            cv.putText(image_mask, label, (right + self.unitCharlength, top + 9), cv.FONT_HERSHEY_SIMPLEX, 0.35, self.color_white, 1)
+            labeledImage = cv.addWeighted(image, alpha, image_mask, 1 - alpha, 0)
+        return labeledImage
+
+    def __createOrb(self, maxCount = 5000):
+        return cv.ORB_create(maxCount)
+
+    def __detectAndComputeOrb(self, imageFile):
+        orb = self.__createOrb(6000)
+        return orb.detectAndCompute(imageFile, None)

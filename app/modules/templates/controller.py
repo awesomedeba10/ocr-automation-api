@@ -1,4 +1,3 @@
-from re import template
 from flask import Blueprint, json, request, render_template
 import os, sys
 
@@ -107,3 +106,19 @@ def preview_labeled_template():
     output = user_id + template_id + '.' + get_file_extension(user_template['image'])
     img.write_image(os.path.join(app.config.get('STORAGE_DIR'), 'temp', output))
     return render_template("preview.html", imgName = 'temp/'+ output)
+
+@template_blueprint.route('/preview-document', methods=['GET'])
+def preview_labeled_document():
+    user_id = request.args.get('user_id', '')
+    template_id = request.args.get('template_id')
+    output_file = request.args.get('output_file', None)
+    file_path = os.path.join(app.config.get('STORAGE_DIR'),'users', user_id +'.json')
+    if not os.path.isfile(file_path):
+        return render_template("preview.html", imgName = 'image-not-found.jpg')
+    with open(file_path, 'r') as jsonFile:
+        user_info = json.load(jsonFile)
+    if template_id not in user_info['templates']:
+        return render_template("preview.html", imgName = 'image-not-found.jpg')
+    elif not user_info['templates'][template_id]['roi'] or output_file is None:
+        return render_template("preview.html", imgName = 'image-not-found.jpg')
+    return render_template("preview.html", imgName = output_file)
