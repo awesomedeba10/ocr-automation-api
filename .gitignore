@@ -133,3 +133,6 @@ requirements copy.txt
 
 storage/users/
 storage/templates/
+
+# Default vscode folder
+.vscode
