@@ -26,4 +26,4 @@ from app.modules.recognizers.controller import recognizer_blueprint
 
 app.register_blueprint(user_blueprint, url_prefix="/user")
 app.register_blueprint(template_blueprint, url_prefix="/template")
-app.register_blueprint(recognizer_blueprint, url_prefix="/recognize")
+app.register_blueprint(recognizer_blueprint, url_prefix="/user-documents")

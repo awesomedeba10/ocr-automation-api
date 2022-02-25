@@ -8,6 +8,8 @@ class CVImage:
         self.image = cv.imread(image)
         self.color_blue = (255, 0, 0)
         self.color_white = (255, 255, 255)
+        self.color_green = (0, 255, 0)
+        self.color_red = (0, 0, 255)
         self.unitCharlength = 8
 
     def draw_frame(self, location):
@@ -61,15 +63,24 @@ class CVImage:
         imgScan = cv.resize(imgScan, (w, h))
         return imgScan
 
-    def drawLabelsonDoc(self, image, ROIs, alpha = 0.5):
+    def drawLabelsonDoc(self, image, ROIs, alpha = 0.5, label=True):
         image_mask = np.zeros_like(image)
         for label, roi in ROIs.items():
             left, top, right, bottom = roi
             cv.rectangle(image_mask, (left, top), (right, bottom), self.color_blue, cv.FILLED)
             # cv.rectangle(image_mask, (right, top), (right + (self.unitCharlength*(len(label)+1)), bottom), self.color_blue, cv.FILLED)
-            cv.putText(image_mask, label, (right + self.unitCharlength, top + 9), cv.FONT_HERSHEY_SIMPLEX, 0.35, self.color_white, 1)
+            if label:
+                cv.putText(image_mask, label, (right + self.unitCharlength, top + 9), cv.FONT_HERSHEY_SIMPLEX, 0.35, self.color_white, 1)
             labeledImage = cv.addWeighted(image, alpha, image_mask, 1 - alpha, 0)
         return labeledImage
+
+    def getCroppedImage(self, image, ROIs):
+        img_data = {}
+        for label, roi in ROIs.items():
+            left, top, right, bottom = roi
+            img_data[label] = image[top:bottom, left:right]
+
+        return img_data
 
     def __createOrb(self, maxCount = 5000):
         return cv.ORB_create(maxCount)
